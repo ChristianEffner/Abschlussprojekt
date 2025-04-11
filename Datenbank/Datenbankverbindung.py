@@ -3,6 +3,9 @@ import configparser
 
 class Datenbankverbindung:
 
+        def __init__(self):
+            self.connection = None
+
         def getProperties(self):
             """
             Liest die Datenbank-Konfiguration aus der config.ini und
@@ -32,11 +35,14 @@ class Datenbankverbindung:
                     charset=props.get('charset'),
                     collation=props.get('collation')
                 )
-                # Falls Du keine Ausgabe wünschst, kannst Du diese Zeile auch entfernen.
                 print("Verbindung zur Datenbank wurde hergestellt.")
+
             except mysql.connector.Error as err:
                 print("Fehler bei der Verbindung:", err)
                 self.connection = None
+
+            return self.connection
+
 
 
         def close_connection(self):
