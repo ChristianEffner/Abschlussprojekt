@@ -1,14 +1,15 @@
-import Datenbank
-from Datenbank import Datenbankverbindung
-from Datenbank import Datenabfragen
+from Datenbank.Datenbankverbindung import Datenbankverbindung
+from Datenbank.Datenabfragen import Datenbankabfragen
 
 def main():
-    db_verbindung = Datenbankverbindung.Datenbankverbindung()
-    db_abfragen = Datenabfragen.Datenbankabfragen()
 
 
-    db_abfragen.aktiveDebitorenAbfragen()
-    #db_verbindung.close_connection()
+    db_verbindung = Datenbankverbindung()
+    db_abfragen = Datenbankabfragen()
+
+
+    db_abfragen.holeAktiveDebitoren()
+
 
 if __name__ == "__main__":
     main()
