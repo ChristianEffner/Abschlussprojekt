@@ -39,7 +39,7 @@ class Datenbankabfragen:
         if users is None:
             users=['510808', '505177', '505197', '524339']
 
-        users_sql = "(" + ", ".join(f"'{users}'" for user in users) + ")"
+        users_sql = "(" + ", ".join(f"'{user}'" for user in users) + ")"
 
         abfrage_aktive_user_pro_land = f"""
                                         SELECT ug2.p_uid AS 'aktive Debitoren', COUNT(*) AS 'Anzahl Users'
