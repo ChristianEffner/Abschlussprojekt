@@ -1,31 +1,80 @@
-from Datenbank import Datenbankverbindung
+from Datenbank.Datenbankverbindung import Datenbankverbindung
 
 class Datenbankabfragen:
 
+    def __init__(self):
+        self.db_instance = Datenbankverbindung()
+        self.db_verbindung = self.db_instance.connect()
 
-    def aktiveDebitorenAbfragen(self, agenten=['510808', '505177', '505197', '524339']): # hier sagen wir das der default die 4 agenten sein sollen
-    
-       agenten_sql = "(" + [f"'{agent}'"  for agent in agenten] + ")" # hier wandeln wir die agenten_liste aus dem parameter in einem sql string, also wir fügen single-quotes für jede angenten nummer und packen es in runde klammern
 
-        abfrage_aktive_Debitoren_pro_Land = f"""
+    def holeAktiveDebitoren(self, agenten=None):
+
+        if agenten is None:
+            agenten=['510808', '505177', '505197', '524339']
+
+        agenten_sql = "(" + ", ".join(f"'{agent}'" for agent in agenten) + ")"
+
+        abfrage_aktive_debitoren_pro_land = f"""
                                             SELECT COUNT(ug3.p_uid) AS 'Anzahl aktive Debitoren', ug2.p_uid AS 'Ländercode'
                                             FROM usergroups ug1
                                             JOIN usergroups ug2 
                                                 ON ug1.p_kmgagentgroup = ug2.usergroups_Id
                                             JOIN usergroups ug3
                                                 ON RIGHT(ug1.p_uid, 6) = ug3.p_uid
-                                            WHERE ug2.p_uid in {agenten_sql} AND ug3.p_uid NOT IN {agenten_sql }
+                                            WHERE ug2.p_uid in {agenten_sql} AND ug3.p_uid NOT IN {agenten_sql}
                                             GROUP BY ug2.p_uid
                                             """
 
-        db_instance = Datenbankverbindung.Datenbankverbindung() #du kannst in deinem import auc schreiben from Datenbankverbindung import Datenbankverbindung  und den Befehl als db_instance = Datenbankverbindung() schreiben
-        db_verbindung = db_instance.connect()
-        db_cursor = db_verbindung.cursor()
-        db_cursor.execute(abfrage_aktive_Debitoren_pro_Land)
-        # hier müsstest du die Verbindung auch wieder schließen, auch würde es sin machen, deinen abfragen, eine datenbankverbindungscursor instanz zu übergeben, oder du instanzierst die Datenbankverbindung in einer __init__ methode
-        results = db_cursor.fetchall() # da du hier multiple result(s) kannst du den plural nehmen
+        db_cursor = self.db_verbindung.cursor()
+        db_cursor.execute(abfrage_aktive_debitoren_pro_land)
+        results = db_cursor.fetchall()
         for x in results:
-            print(x) 
-           
-        # deine funktion sollte ideallerweise etwas zurückgeben, hier in deinem Fall results
+            print(x)
+
+        return results
+
+    def holeAktiveUser(self, users=None):
+
+        if users is None:
+            users=['510808', '505177', '505197', '524339']
+
+        users_sql = "(" + ", ".join(f"'{user}'" for user in users) + ")"
+
+        abfrage_aktive_user_pro_land = f"""
+                                        SELECT ug2.p_uid AS 'aktive Debitoren', COUNT(*) AS 'Anzahl Users'
+                                        FROM
+                                            usergroups ug1
+                                        JOIN
+                                            usergroups ug2
+                                            ON ug1.p_kmgagentgroup = ug2.usergroups_Id
+                                        JOIN
+                                            usergroups ug3
+                                            ON RIGHT(ug1.p_uid, 6) = ug3.p_uid
+                                        JOIN
+                                            (
+                                                SELECT
+                                                    us.p_uid as user_id,
+                                                    us.p_name as user_name, 
+                                                    ug4.p_uid AS user_debitor
+                                                FROM
+                                                    users us
+                                                LEFT JOIN pgrels rel1
+                                                ON us.user_Id = rel1.SourcePK
+                                                LEFT JOIN usergroups ug4
+                                                ON rel1.TargetPK = ug4.usergroups_Id
+                                               LEFT JOIN pgrels rel2
+                                                ON ug4.usergroups_Id = rel2.SourcePK
+                                            ) AS usercompanies
+                                            ON ug3.p_uid = usercompanies.user_debitor
+                                        WHERE ug2.p_uid in {users_sql} AND ug3.p_uid NOT IN {users_sql}
+                                        GROUP BY 1
+                                        ORDER BY 2 DESC
+                                        """
+
+        db_cursor = self.db_verbindung.cursor()
+        db_cursor.execute(abfrage_aktive_user_pro_land)
+        results = db_cursor.fetchall()
+        for x in results:
+            print(x)
+
         return results
