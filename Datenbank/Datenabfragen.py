@@ -2,6 +2,9 @@ from Datenbank.Datenbankverbindung import Datenbankverbindung
 
 class Datenbankabfragen:
 
+    def __init__(self):
+        self.db_instance = Datenbankverbindung()
+        self.db_verbindung = self.db_instance.connect()
 
 
     def holeAktiveDebitoren(self, agenten=None):
@@ -22,15 +25,11 @@ class Datenbankabfragen:
                                             GROUP BY ug2.p_uid
                                             """
 
-        db_instance = Datenbankverbindung()
-        db_verbindung = db_instance.connect()
-        db_cursor = db_verbindung.cursor()
+        db_cursor = self.db_verbindung.cursor()
         db_cursor.execute(abfrage_aktive_debitoren_pro_land)
-        db_instance.close_connection()
         results = db_cursor.fetchall()
         for x in results:
             print(x)
-
 
         return results
 
@@ -72,11 +71,8 @@ class Datenbankabfragen:
                                         ORDER BY 2 DESC
                                         """
 
-        db_instance = Datenbankverbindung()
-        db_verbindung = db_instance.connect()
-        db_cursor = db_verbindung.cursor()
+        db_cursor = self.db_verbindung.cursor()
         db_cursor.execute(abfrage_aktive_user_pro_land)
-        db_instance.close_connection()
         results = db_cursor.fetchall()
         for x in results:
             print(x)
